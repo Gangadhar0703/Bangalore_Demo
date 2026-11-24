@@ -73,34 +73,15 @@ In the OCI console, create an Ubuntu 24.04 ARM VM in your home region using the 
 
 In the VM's VCN security rules, allow inbound TCP 22 only from your own IP address, and TCP 80 and 443 from the internet. Do not open port 8080. Note the VM's public IP.
 
-### 2. Allow the private GitHub repository to be cloned
+### 2. Install the server runtime and get the project
 
-This repository is private. SSH to the VM, create a read-only deploy key, and add its public half under the GitHub repository's **Settings → Deploy keys**. Do not share the private key.
-
-```bash
-ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_github -C accessibility-mapper-deploy
-cat ~/.ssh/id_ed25519_github.pub
-```
-
-Add this SSH configuration on the VM:
-
-```bash
-cat >> ~/.ssh/config <<'EOF'
-Host github.com
-    IdentityFile ~/.ssh/id_ed25519_github
-    IdentitiesOnly yes
-EOF
-chmod 600 ~/.ssh/config
-ssh -T git@github.com
-```
-
-After the project has been pushed to GitHub, install Docker and clone it:
+These commands install Docker on the cloud VM, not on your computer. The GitHub repository is public, so it can be cloned without a deploy key.
 
 ```bash
 sudo apt update
 sudo apt install -y git docker.io docker-compose-v2
 sudo systemctl enable --now docker
-sudo git clone git@github.com:Gangadhar0703/Bangalore_Demo.git /opt/accessibility-mapper
+sudo git clone https://github.com/Gangadhar0703/Bangalore_Demo.git /opt/accessibility-mapper
 sudo chown -R "$USER":"$USER" /opt/accessibility-mapper
 cd /opt/accessibility-mapper
 ```

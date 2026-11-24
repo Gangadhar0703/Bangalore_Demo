@@ -61,7 +61,7 @@
             <span class="eyebrow"><span class="eyebrow-dot"></span> HELP THE NEXT VISITOR</span>
             <h2>Been here?</h2>
             <p>Your first-hand experience helps someone else plan with confidence. Update each facility you checked today.</p>
-            <form th:action="@{/places/{id}/reviews(id=${place.id})}" method="post" enctype="multipart/form-data">
+            <form th:if="${currentAccount != null}" th:action="@{/places/{id}/reviews(id=${place.id})}" method="post" enctype="multipart/form-data">
                 <label class="sr-only" for="rating">How was your visit?</label>
                 <select id="rating" name="rating" required>
                     <option value="">Choose a rating</option><option value="5">★★★★★ — Great experience</option><option value="4">★★★★ — Good experience</option><option value="3">★★★ — It was okay</option><option value="2">★★ — Some things to know</option><option value="1">★ — Difficult visit</option>
@@ -88,6 +88,10 @@
                 <button class="button button-dark button-full" type="submit">Share visit note <span>→</span></button>
                 <small class="form-footnote">Facility checks and visit notes are reviewed by the Bangalore community team before they update the map.</small>
             </form>
+            <div class="notice notice-success" th:unless="${currentAccount != null}">
+                <p>Log in to share a visit note and update facility checks.</p>
+                <a th:href="@{/login}">Log in</a> or <a th:href="@{/register}">create an account</a> to help the next visitor.
+            </div>
         </aside>
     </div>
 </main>

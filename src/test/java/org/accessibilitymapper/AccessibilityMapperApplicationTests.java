@@ -13,11 +13,17 @@ import org.accessibilitymapper.service.ReviewService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -73,6 +79,34 @@ class AccessibilityMapperApplicationTests {
                 .andExpect(content().string(containsString("Kasturba Road")))
                 .andExpect(content().string(containsString("Step-free: available")))
                 .andExpect(content().string(containsString("Last checked")));
+    }
+
+    @Test
+    void loggedOutVisitorsAreAskedToSignInBeforeSharingVisitNotes() throws Exception {
+        mockMvc.perform(get("/places/1"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Log in to share a visit note")))
+                .andExpect(content().string(containsString("create an account")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(containsString("Share visit note"))));
+    }
+
+    @Test
+    void anonymousVisitNoteSubmissionRedirectsToLoginWithoutSaving() throws Exception {
+        MvcResult login = mockMvc.perform(get("/login")).andReturn();
+        Matcher csrf = Pattern.compile("<input[^>]*name=\"_csrf\"[^>]*value=\"([^\"]+)\"")
+                .matcher(login.getResponse().getContentAsString());
+        assertTrue(csrf.find());
+        long reviewCount = reviews.count();
+
+        mockMvc.perform(post("/places/1/reviews")
+                        .session((MockHttpSession) login.getRequest().getSession(false))
+                        .param("_csrf", csrf.group(1))
+                        .param("rating", "5")
+                        .param("comments", "A test visit note"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("**/login"));
+
+        assertEquals(reviewCount, reviews.count());
     }
 
     @Test
