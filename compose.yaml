@@ -1,0 +1,39 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    environment:
+      PORT: "8080"
+      DB_URL: jdbc:h2:file:/app/data/accessibility-mapper;MODE=MySQL;DATABASE_TO_LOWER=TRUE
+      DB_USERNAME: sa
+      UPLOAD_DIR: /app/uploads
+      SEED_DEMO_DATA: "true"
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@access.org}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in .env}
+      MEMBER_EMAIL: ${MEMBER_EMAIL:-mapper@access.org}
+      MEMBER_PASSWORD: ${MEMBER_PASSWORD:?Set MEMBER_PASSWORD in .env}
+    volumes:
+      - ./data:/app/data
+      - ./uploads:/app/uploads
+    expose:
+      - "8080"
+
+  proxy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - app
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN:?Set SITE_DOMAIN in .env}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:

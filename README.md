@@ -61,20 +61,67 @@ src/main/resources/
 
 Run the test suite with `mvn test`.
 
-## Publish from GitHub with Render
+## Deploy on Oracle Cloud Always Free
 
-1. On GitHub, create a **private** repository named `Bangalore_Demo` (no README or starter files).
-2. Push this project folder to that repository:
+The project includes a Docker Compose deployment for an Oracle Cloud Infrastructure (OCI) Always Free Ubuntu ARM VM. The app, H2 database, and uploaded photos run on the VM; Caddy provides HTTPS. No paid web-hosting service or external database is needed.
 
-   ```powershell
-   git init
-   git add .
-   git commit -m "Initial Bangalore Accessibility Mapper"
-   git branch -M main
-   git remote add origin https://github.com/YOUR-USERNAME/Bangalore_Demo.git
-   git push -u origin main
-   ```
+OCI's Always Free A1 allowance is up to 2 OCPUs and 12 GB of memory in your home region. Oracle may require phone and card verification to create an account; its Free Tier documentation says the card is not charged unless you upgrade. Do not upgrade or provision resources that are not marked Always Free. Availability depends on region, and Oracle may reclaim idle Always Free compute instances. Keep a separate backup of important data. See [OCI Free Tier](https://www.oracle.com/cloud/free/) and [Always Free resource limits](https://docs.oracle.com/en-us/iaas/Content/FreeTier/freetier_topic-Always_Free_Resources.htm).
 
-3. Sign in to [Render](https://render.com/), choose **New → Blueprint**, and connect the private GitHub repository. Render reads `render.yaml`, builds the Docker image, and provides your public service URL.
+### 1. Create an Always Free VM
 
-The Render setup creates a disk-backed H2 database and photo uploads so submitted updates persist across deploys. It requires a disk-compatible paid web service. Keep the attached disk; it contains the database and uploaded photos. Render generates unique seed account passwords; view them in the service's environment settings. The default account emails are `admin@access.org` and `mapper@access.org`. Change the admin email or generated credentials before sharing the site. Sample accessibility reports are demonstration data, not a guarantee of current conditions.
+In the OCI console, create an Ubuntu 24.04 ARM VM in your home region using the `VM.Standard.A1.Flex` shape, within the Always Free limits (for example, 1 OCPU and 6 GB RAM). Use the default boot volume size. Add your own SSH public key at creation and retain the private key securely.
+
+In the VM's VCN security rules, allow inbound TCP 22 only from your own IP address, and TCP 80 and 443 from the internet. Do not open port 8080. Note the VM's public IP.
+
+### 2. Allow the private GitHub repository to be cloned
+
+This repository is private. SSH to the VM, create a read-only deploy key, and add its public half under the GitHub repository's **Settings → Deploy keys**. Do not share the private key.
+
+```bash
+ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_github -C accessibility-mapper-deploy
+cat ~/.ssh/id_ed25519_github.pub
+```
+
+Add this SSH configuration on the VM:
+
+```bash
+cat >> ~/.ssh/config <<'EOF'
+Host github.com
+    IdentityFile ~/.ssh/id_ed25519_github
+    IdentitiesOnly yes
+EOF
+chmod 600 ~/.ssh/config
+ssh -T git@github.com
+```
+
+After the project has been pushed to GitHub, install Docker and clone it:
+
+```bash
+sudo apt update
+sudo apt install -y git docker.io docker-compose-v2
+sudo systemctl enable --now docker
+sudo git clone git@github.com:Gangadhar0703/Bangalore_Demo.git /opt/accessibility-mapper
+sudo chown -R "$USER":"$USER" /opt/accessibility-mapper
+cd /opt/accessibility-mapper
+```
+
+### 3. Configure and start the website
+
+Copy `.env.example` to `.env`. Set `SITE_DOMAIN` to `<your-public-ip>.sslip.io` (for example, `203.0.113.10.sslip.io`) and replace both sample passwords with long, unique passwords. This hostname maps to the VM's IP; Caddy obtains and renews the HTTPS certificate automatically. Keep `.env` private; it is ignored by Git.
+
+```bash
+cp .env.example .env
+nano .env
+sudo docker compose up -d --build
+sudo docker compose logs -f
+```
+
+Open `https://<your-public-ip>.sslip.io`. The first boot seeds demonstration accounts and sample places. The administrator email and password are the values in `.env`; keep the password private. Demo accessibility reports may be out of date and are not a guarantee of current conditions.
+
+Persistent application data is stored in `data/` and uploaded photos in `uploads/`. Back up both directories before replacing or deleting the VM. After pushing code changes to GitHub, update the deployment with:
+
+```bash
+cd /opt/accessibility-mapper
+git pull
+sudo docker compose up -d --build
+```
