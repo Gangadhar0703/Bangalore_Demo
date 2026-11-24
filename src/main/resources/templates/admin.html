@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Community review · Access Atlas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<div th:replace="~{fragments :: header}"></div>
+<main class="interior-page admin-page">
+    <div class="notice notice-success" th:if="${notice}" th:text="${notice}"></div>
+    <a class="back-link" th:href="@{/}">← Back to places</a>
+    <div class="form-heading"><span class="eyebrow"><span class="eyebrow-dot"></span> BANGALORE COMMUNITY CARE</span><h1>Keep facility<br><span>checks current.</span></h1><p>Review Bangalore park, theatre, and mall listings, then approve each on-the-ground facility update.</p></div>
+    <section class="admin-section"><div class="admin-title"><h2>New places</h2><span class="queue-count" th:text="${#lists.size(pendingPlaces)}">0</span></div>
+        <article class="queue-card" th:each="place : ${pendingPlaces}">
+            <div class="queue-photo"><img th:if="${place.coverImageUrl != null}" th:src="${place.coverImageUrl}" th:alt="${place.name}"><span th:if="${place.coverImageUrl == null}">a.</span></div>
+            <div class="queue-info"><span class="place-category" th:text="${place.category}">Category</span><h3 th:text="${place.name}">Place</h3><p th:text="${place.address}">Address</p><div class="feature-tags"><span class="tag" th:if="${place.wheelchairRamp}">Step-free</span><span class="tag" th:if="${place.workingElevator}">Elevator</span><span class="tag" th:if="${place.accessibleWashroom}">Accessible washroom</span><span class="tag" th:if="${place.tactilePaving}">Tactile paving</span><span class="tag" th:if="${place.wideDoorways}">Wide doorways</span></div></div>
+            <div class="queue-actions"><form th:action="@{/admin/facilities/{id}/approve(id=${place.id})}" method="post"><button class="button button-outline" type="submit">Approve</button></form><form th:action="@{/admin/facilities/{id}/verify(id=${place.id})}" method="post"><button class="button button-dark" type="submit">✓ Verify accessible</button></form></div>
+        </article>
+        <p class="quiet-note" th:if="${#lists.isEmpty(pendingPlaces)}">All caught up — no places to review.</p>
+    </section>
+    <section class="admin-section"><div class="admin-title"><h2>Facility checks & visit notes</h2><span class="queue-count" th:text="${#lists.size(pendingReviews)}">0</span></div>
+        <article class="queue-review" th:each="review : ${pendingReviews}"><div>
+            <span class="place-category" th:text="${review.facility.name}">Place</span>
+            <p th:text="${review.comments}">Visit note</p>
+            <div class="feature-tags report-tags">
+                <span class="tag" th:if="${review.wheelchairRampReport != null}" th:text="${review.wheelchairRampReport} ? 'Step-free: available' : 'Step-free: unavailable'"></span>
+                <span class="tag" th:if="${review.workingElevatorReport != null}" th:text="${review.workingElevatorReport} ? 'Elevator: working' : 'Elevator: unavailable'"></span>
+                <span class="tag" th:if="${review.accessibleWashroomReport != null}" th:text="${review.accessibleWashroomReport} ? 'Washroom: available' : 'Washroom: unavailable'"></span>
+                <span class="tag" th:if="${review.tactilePavingReport != null}" th:text="${review.tactilePavingReport} ? 'Tactile paving: available' : 'Tactile paving: unavailable'"></span>
+                <span class="tag" th:if="${review.wideDoorwaysReport != null}" th:text="${review.wideDoorwaysReport} ? 'Wide doorways: available' : 'Wide doorways: unavailable'"></span>
+            </div>
+            <strong th:text="${review.user.name}">Member</strong>
+            <span class="review-stars" th:text="${'★'.repeat(review.rating)}">★★★★★</span>
+            <img class="review-photo" th:if="${review.photoUrl != null}" th:src="${review.photoUrl}" alt="Submitted accessibility photo">
+        </div><form th:action="@{/admin/reviews/{id}/approve(id=${review.id})}" method="post"><button class="button button-dark" type="submit">Approve check-in</button></form></article>
+        <p class="quiet-note" th:if="${#lists.isEmpty(pendingReviews)}">All facility checks are up to date. No check-ins are waiting for review.</p>
+    </section>
+</main>
+<div th:replace="~{fragments :: footer}"></div>
+<script th:src="@{/js/site.js}"></script>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f7f7f3">
+    <title>Access Atlas Bangalore — Know before you go</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+</head>
+<body>
+<div th:replace="~{fragments :: header}"></div>
+<main>
+    <div class="notice notice-success global-notice" th:if="${notice}" th:text="${notice}"></div>
+    <section class="hero">
+        <div class="hero-copy">
+            <span class="eyebrow"><span class="eyebrow-dot"></span> BANGALORE, WITH EVERYONE IN MIND</span>
+            <h1>The world is yours.<br><span>Know before you go.</span></h1>
+            <p class="hero-description">Find Bangalore parks, theatres, and malls. Check how their access facilities are doing before you head out.</p>
+            <a class="hero-cta" href="#discover">Find your next stop <span aria-hidden="true">↓</span></a>
+        </div>
+        <div class="hero-visual" aria-label="Sunny city courtyard with an accessible ramp">
+            <div class="hero-photo"></div>
+            <div class="float-card float-card-top"><span class="float-check">✓</span><span>First-hand tips,<br><strong>from people like you</strong></span></div>
+            <div class="float-card float-card-bottom"><span class="float-pin">↗</span><span>4.9 <span class="stars">★★★★★</span><br><strong>Everything in reach</strong></span></div>
+            <span class="image-caption">Access information, kept up to date by the community</span>
+        </div>
+        <div class="hero-vertical-note">BUILT TO HELP YOU BELONG</div>
+    </section>
+
+    <section class="discovery" id="discover">
+        <div class="section-heading">
+            <div>
+                <span class="eyebrow"><span class="eyebrow-dot"></span> PLACES ACROSS BANGALORE</span>
+                <h2>Parks, theatres, malls.</h2>
+            </div>
+            <p>Community reports track real facility conditions<br>so the latest update is easy to find.</p>
+        </div>
+        <div class="search-panel">
+            <form method="get" th:action="@{/}" id="search-form">
+                <div class="search-main">
+                    <label class="search-input-wrap">
+                        <span class="field-icon" aria-hidden="true">⌕</span>
+                        <span class="sr-only">Search places</span>
+                        <input type="search" name="q" placeholder="A place, a feeling, a favorite spot..." th:value="${q}">
+                    </label>
+                    <label class="location-input-wrap">
+                        <span class="field-icon location-icon" aria-hidden="true">⌖</span>
+                        <span class="sr-only">Location</span>
+                        <input type="text" name="location" placeholder="Bangalore neighborhood" th:value="${location}">
+                    </label>
+                    <button class="search-button" type="submit">Find places <span aria-hidden="true">↗</span></button>
+                </div>
+                <div class="filter-row">
+                    <label class="select-label">
+                        <span class="sr-only">Place category</span>
+                        <select name="category">
+                            <option value="All places" th:selected="${category == 'All places'}">All places</option>
+                            <option th:each="option : ${categories}" th:value="${option}" th:text="${option}" th:selected="${category == option}"></option>
+                        </select>
+                    </label>
+                    <span class="filter-divider"></span>
+                    <fieldset class="feature-filters">
+                        <legend>Look for</legend>
+                        <label class="filter-chip"><input type="checkbox" name="features" value="ramp" th:checked="${features.contains('ramp')}"><span>♿</span> Step-free</label>
+                        <label class="filter-chip"><input type="checkbox" name="features" value="elevator" th:checked="${features.contains('elevator')}"><span>↕</span> Elevator</label>
+                        <label class="filter-chip"><input type="checkbox" name="features" value="washroom" th:checked="${features.contains('washroom')}"><span>⌂</span> Accessible washroom</label>
+                        <label class="filter-chip"><input type="checkbox" name="features" value="tactile" th:checked="${features.contains('tactile')}"><span>⠿</span> Tactile paving</label>
+                        <label class="filter-chip"><input type="checkbox" name="features" value="wide-doors" th:checked="${features.contains('wide-doors')}"><span>↔</span> Wide doorways</label>
+                    </fieldset>
+                    <input type="hidden" name="view" th:value="${view}" id="view-input">
+                </div>
+            </form>
+        </div>
+
+        <div class="results-toolbar">
+            <div>
+                <span class="result-count" th:text="${#lists.size(places)}">0</span>
+                <span class="result-label" th:text="${#lists.size(places) == 1 ? 'good place to start' : 'good places to start'}">good places to start</span>
+            </div>
+            <div class="view-switch" role="group" aria-label="Choose results view">
+                <button type="button" class="view-button" th:classappend="${view == 'list'} ? 'active' : ''" data-view="list" th:attr="aria-pressed=${view == 'list'}"><span aria-hidden="true">▦</span> List</button>
+                <button type="button" class="view-button" th:classappend="${view == 'map'} ? 'active' : ''" data-view="map" th:attr="aria-pressed=${view == 'map'}"><span aria-hidden="true">⌖</span> Map</button>
+            </div>
+        </div>
+
+        <div class="place-grid" id="list-view" th:classappend="${view == 'map'} ? 'is-hidden' : ''">
+            <article class="place-card" th:each="place : ${places}"
+                     th:attr="data-lat=${place.latitude},data-lng=${place.longitude},data-name=${place.name},data-id=${place.id},data-address=${place.address}">
+                <a class="place-image-link" th:href="@{/places/{id}(id=${place.id})}">
+                    <img class="place-image" th:if="${place.coverImageUrl != null}" th:src="${place.coverImageUrl}" th:alt="${place.name}" loading="lazy">
+                    <div class="place-image place-image-empty" th:if="${place.coverImageUrl == null}" aria-hidden="true">a.</div>
+                    <span class="verified-badge" th:if="${place.verified}"><span>✓</span> Verified accessible</span>
+                    <span class="image-arrow" aria-hidden="true">↗</span>
+                </a>
+                <div class="place-content">
+                    <div class="place-category-row">
+                        <span class="place-category" th:text="${place.category}">Category</span>
+                        <span class="rating" th:if="${ratings.get(place.id) > 0}"><span>★</span> <span th:text="${#numbers.formatDecimal(ratings.get(place.id), 1, 1)}">4.8</span></span>
+                        <span class="rating rating-new" th:if="${ratings.get(place.id) == 0}">New</span>
+                    </div>
+                    <h3><a th:href="@{/places/{id}(id=${place.id})}" th:text="${place.name}">Place name</a></h3>
+                    <p class="place-address"><span aria-hidden="true">⌖</span> <span th:text="${place.address}">Address</span></p>
+                    <div class="feature-tags">
+                        <span class="tag" th:if="${place.wheelchairRamp}"><span>✓</span> Step-free</span>
+                        <span class="tag" th:if="${place.workingElevator}"><span>✓</span> Elevator</span>
+                        <span class="tag" th:if="${place.accessibleWashroom}"><span>✓</span> Accessible washroom</span>
+                        <span class="tag" th:if="${place.tactilePaving}"><span>✓</span> Tactile paving</span>
+                        <span class="tag" th:if="${place.wideDoorways}"><span>✓</span> Wide doorways</span>
+                    </div>
+                    <p class="monitoring-status" th:if="${place.lastAccessibilityCheck != null}">
+                        <span class="monitoring-dot"></span> Last facility check
+                        <time th:text="${#temporals.format(place.lastAccessibilityCheck, 'd MMM yyyy')}">24 Nov 2026</time>
+                    </p>
+                    <p class="monitoring-status monitoring-pending" th:if="${place.lastAccessibilityCheck == null}">
+                        <span class="monitoring-dot"></span> Awaiting first facility check
+                    </p>
+                    <a class="card-link" th:href="@{/places/{id}(id=${place.id})}">See what to expect <span aria-hidden="true">→</span></a>
+                </div>
+            </article>
+            <div class="empty-state" th:if="${#lists.isEmpty(places)}">
+                <span aria-hidden="true">⌖</span><h3>No places found just yet.</h3>
+                <p>Try changing a filter, or help someone else by adding a place you know.</p>
+                <a class="button button-dark" th:href="@{/contribute}">Add a place</a>
+            </div>
+        </div>
+
+        <div id="map-view" class="map-panel" th:classappend="${view == 'map'} ? '' : 'is-hidden'">
+            <div id="place-map" role="region" aria-label="Map of accessible public places"></div>
+            <div class="map-note"><span class="map-legend"></span> <span>Community-mapped places</span><span class="map-note-separator">·</span><span th:text="${#lists.size(places)} + ' places in this view'"></span></div>
+            <div class="map-fallback is-hidden">Map tiles couldn’t load. <a href="https://www.openstreetmap.org/" target="_blank" rel="noreferrer">Open OpenStreetMap ↗</a></div>
+        </div>
+    </section>
+
+    <section class="community-banner">
+        <div class="community-mark" aria-hidden="true">↗</div>
+        <div><span class="eyebrow">KNOW A BANGALORE PLACE?</span><h2>Your experience<br>opens doors.</h2></div>
+        <p>Add a park, theatre, or mall, or check on the ramps, lifts, and washrooms at one you already know.</p>
+        <a class="community-cta" th:href="@{/contribute}">Share a place <span aria-hidden="true">→</span></a>
+    </section>
+</main>
+<div th:replace="~{fragments :: footer}"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script th:src="@{/js/site.js}"></script>
+</body>
+</html>

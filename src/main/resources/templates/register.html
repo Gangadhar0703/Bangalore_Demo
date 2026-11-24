@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Join Access Atlas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<div th:replace="~{fragments :: header}"></div>
+<main class="auth-page"><div class="auth-card"><span class="eyebrow"><span class="eyebrow-dot"></span> EVERY JOURNEY COUNTS</span><h1>Make room<br><span>for everyone.</span></h1>
+    <div class="notice notice-error" th:if="${registrationError}" th:text="${registrationError}"></div>
+    <form th:action="@{/register}" th:object="${form}" method="post"><label for="name">Your name</label><input id="name" type="text" th:field="*{name}" autocomplete="name" required><p class="field-error" th:errors="*{name}"></p><label for="email">Email address</label><input id="email" type="email" th:field="*{email}" autocomplete="email" required><p class="field-error" th:errors="*{email}"></p><label for="password">Password <span class="optional">at least 8 characters</span></label><input id="password" type="password" th:field="*{password}" autocomplete="new-password" minlength="8" required><p class="field-error" th:errors="*{password}"></p><button class="button button-dark button-full" type="submit">Create account <span>→</span></button></form>
+    <p class="auth-switch">Already part of the community? <a th:href="@{/login}">Log in</a></p>
+</div></main>
+<div th:replace="~{fragments :: footer}"></div>
+</body>
+</html>

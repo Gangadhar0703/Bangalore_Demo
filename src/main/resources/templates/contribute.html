@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Add a place · Access Atlas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<div th:replace="~{fragments :: header}"></div>
+<main class="form-page">
+    <a class="back-link" th:href="@{/}">← Back to places</a>
+    <div class="form-heading">
+        <span class="eyebrow"><span class="eyebrow-dot"></span> YOUR KNOW-HOW MATTERS</span>
+        <h1>Put a good place<br><span>on the map.</span></h1>
+        <p>Add a Bangalore park, theatre, or mall. Community members can keep its access details up to date with reviewed facility checks.</p>
+    </div>
+    <form class="contribution-form" th:action="@{/contribute}" th:object="${facility}" method="post" enctype="multipart/form-data">
+        <div class="form-section-title"><span>01</span><div><h2>Tell us where to go</h2><p>The basics help people find the right door.</p></div></div>
+        <label for="name">Place name <span class="required">*</span></label>
+        <input id="name" type="text" th:field="*{name}" maxlength="140" placeholder="e.g. Central Library" required>
+        <p class="field-error" th:errors="*{name}"></p>
+        <div class="form-row">
+            <div><label for="category">What kind of place? <span class="required">*</span></label><select id="category" th:field="*{category}" required><option value="">Choose a category</option><option th:each="option : ${categories}" th:value="${option}" th:text="${option}"></option></select><p class="field-error" th:errors="*{category}"></p></div>
+            <div><label for="address">Street address in Bangalore <span class="required">*</span></label><input id="address" type="text" th:field="*{address}" maxlength="240" placeholder="Street, neighborhood, Bangalore" required><p class="field-error" th:errors="*{address}"></p></div>
+        </div>
+        <div class="form-row coordinates-row">
+            <div><label for="latitude">Bangalore latitude <span class="required">*</span></label><input id="latitude" type="number" step="any" min="12.70" max="13.20" th:field="*{latitude}" placeholder="12.9763" required><p class="field-error" th:errors="*{latitude}"></p></div>
+            <div><label for="longitude">Bangalore longitude <span class="required">*</span></label><input id="longitude" type="number" step="any" min="77.30" max="77.90" th:field="*{longitude}" placeholder="77.5929" required><p class="field-error" th:errors="*{longitude}"></p></div>
+        </div>
+        <div class="form-section-title form-section-spaced"><span>02</span><div><h2>Share what’s accessible</h2><p>Only tick what you’ve seen or used yourself.</p></div></div>
+        <div class="contribute-features">
+            <label><input type="checkbox" th:field="*{wheelchairRamp}"><span class="checkmark">✓</span><span><strong>Step-free entrance</strong><small>Ramp or level access to enter</small></span></label>
+            <label><input type="checkbox" th:field="*{workingElevator}"><span class="checkmark">✓</span><span><strong>Working elevator</strong><small>Lift access inside the building</small></span></label>
+            <label><input type="checkbox" th:field="*{accessibleWashroom}"><span class="checkmark">✓</span><span><strong>Accessible washroom</strong><small>Accessible restroom facilities</small></span></label>
+            <label><input type="checkbox" th:field="*{tactilePaving}"><span class="checkmark">✓</span><span><strong>Tactile paving</strong><small>Ground-surface indicators</small></span></label>
+            <label><input type="checkbox" th:field="*{wideDoorways}"><span class="checkmark">✓</span><span><strong>Wide doorways</strong><small>Room for mobility aids to pass</small></span></label>
+        </div>
+        <div class="form-section-title form-section-spaced"><span>03</span><div><h2>A picture is worth a lot</h2><p>Show the entrance, ramp, or facilities. JPG, PNG, or WebP, up to 8 MB.</p></div></div>
+        <label class="upload-zone" for="place-photo"><span class="upload-symbol">↑</span><strong>Choose a photo to upload</strong><span>or drop it here · JPG, PNG, WebP</span><input id="place-photo" type="file" name="photo" accept="image/jpeg,image/png,image/webp" data-photo-input></label>
+        <p class="field-error" th:if="${locationError}" th:text="${locationError}"></p>
+        <p class="field-error" th:if="${uploadError}" th:text="${uploadError}"></p>
+        <div class="photo-preview is-hidden" data-photo-preview></div>
+        <button class="button button-dark submit-contribution" type="submit">Send for review <span>→</span></button>
+        <p class="form-footnote">Every new place is checked by a community moderator before it’s listed. Places outside Bangalore and categories other than parks, theatres, and malls are not accepted.</p>
+    </form>
+</main>
+<div th:replace="~{fragments :: footer}"></div>
+<script th:src="@{/js/site.js}"></script>
+</body>
+</html>

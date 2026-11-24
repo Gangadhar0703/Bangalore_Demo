@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${place.name + ' · Access Atlas'}">Place · Access Atlas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<div th:replace="~{fragments :: header}"></div>
+<main class="interior-page">
+    <div class="notice notice-success" th:if="${notice}" th:text="${notice}"></div>
+    <a class="back-link" th:href="@{/}">← Back to places</a>
+    <div class="detail-hero">
+        <img th:if="${place.coverImageUrl != null}" th:src="${place.coverImageUrl}" th:alt="${place.name}">
+        <div class="place-image-empty" th:if="${place.coverImageUrl == null}">a.</div>
+        <span class="verified-badge" th:if="${place.verified}"><span>✓</span> Verified accessible</span>
+    </div>
+    <div class="detail-layout">
+        <section class="detail-main">
+            <span class="place-category" th:text="${place.category}">Category</span>
+            <h1 th:text="${place.name}">Place name</h1>
+            <p class="place-address detail-address"><span>⌖</span> <span th:text="${place.address}">Address</span></p>
+            <div class="detail-rating" th:if="${rating > 0}"><span>★</span> <strong th:text="${#numbers.formatDecimal(rating, 1, 1)}">4.8</strong> <span>from community visits</span></div>
+            <h2>Access details</h2>
+            <p class="detail-intro" th:if="${place.lastAccessibilityCheck != null}">
+                Facility conditions last checked on <strong th:text="${#temporals.format(place.lastAccessibilityCheck, 'd MMM yyyy')}">24 Nov 2026</strong>.
+                Share a fresh check when something changes.
+            </p>
+            <p class="detail-intro" th:if="${place.lastAccessibilityCheck == null}">
+                These facilities have not been checked yet. Share a current visit report to help keep access information up to date.
+            </p>
+            <div class="detail-features">
+                <div class="detail-feature" th:classappend="${place.wheelchairRamp} ? 'feature-yes' : ''"><span th:text="${place.wheelchairRamp ? '✓' : '—'}">✓</span><div><strong>Step-free entrance</strong><small th:text="${place.wheelchairRampCheckedAt != null ? 'Last checked ' + #temporals.format(place.wheelchairRampCheckedAt, 'd MMM yyyy') : place.wheelchairRamp ? 'Reported available; awaiting its first check.' : 'No step-free access has been reported yet.'}"></small></div></div>
+                <div class="detail-feature" th:classappend="${place.workingElevator} ? 'feature-yes' : ''"><span th:text="${place.workingElevator ? '✓' : '—'}">✓</span><div><strong>Working elevator</strong><small th:text="${place.workingElevatorCheckedAt != null ? 'Last checked ' + #temporals.format(place.workingElevatorCheckedAt, 'd MMM yyyy') : place.workingElevator ? 'Reported available; awaiting its first check.' : 'No elevator has been reported yet.'}"></small></div></div>
+                <div class="detail-feature" th:classappend="${place.accessibleWashroom} ? 'feature-yes' : ''"><span th:text="${place.accessibleWashroom ? '✓' : '—'}">✓</span><div><strong>Accessible washroom</strong><small th:text="${place.accessibleWashroomCheckedAt != null ? 'Last checked ' + #temporals.format(place.accessibleWashroomCheckedAt, 'd MMM yyyy') : place.accessibleWashroom ? 'Reported available; awaiting its first check.' : 'No accessible washroom has been reported yet.'}"></small></div></div>
+                <div class="detail-feature" th:classappend="${place.tactilePaving} ? 'feature-yes' : ''"><span th:text="${place.tactilePaving ? '✓' : '—'}">✓</span><div><strong>Tactile paving</strong><small th:text="${place.tactilePavingCheckedAt != null ? 'Last checked ' + #temporals.format(place.tactilePavingCheckedAt, 'd MMM yyyy') : place.tactilePaving ? 'Reported available; awaiting its first check.' : 'No tactile paving has been reported yet.'}"></small></div></div>
+                <div class="detail-feature" th:classappend="${place.wideDoorways} ? 'feature-yes' : ''"><span th:text="${place.wideDoorways ? '✓' : '—'}">✓</span><div><strong>Wide doorways</strong><small th:text="${place.wideDoorwaysCheckedAt != null ? 'Last checked ' + #temporals.format(place.wideDoorwaysCheckedAt, 'd MMM yyyy') : place.wideDoorways ? 'Reported available; awaiting its first check.' : 'No doorway width information has been reported yet.'}"></small></div></div>
+            </div>
+            <section class="reviews-section">
+                <h2>Facility check-ins</h2>
+                <p class="detail-intro">Latest first. Access changes; every approved check helps someone plan their next visit.</p>
+                <article class="review-card" th:each="review : ${reviews}">
+                    <div class="review-top"><strong th:text="${review.user.name}">Community member</strong><span class="review-stars" th:text="${'★'.repeat(review.rating)}">★★★★★</span></div>
+                    <p th:text="${review.comments}">A helpful visit note.</p>
+                    <div class="feature-tags report-tags">
+                        <span class="tag" th:if="${review.wheelchairRampReport != null}" th:classappend="${review.wheelchairRampReport} ? 'report-available' : 'report-unavailable'" th:text="${review.wheelchairRampReport} ? 'Step-free: available' : 'Step-free: unavailable'"></span>
+                        <span class="tag" th:if="${review.workingElevatorReport != null}" th:classappend="${review.workingElevatorReport} ? 'report-available' : 'report-unavailable'" th:text="${review.workingElevatorReport} ? 'Elevator: working' : 'Elevator: unavailable'"></span>
+                        <span class="tag" th:if="${review.accessibleWashroomReport != null}" th:classappend="${review.accessibleWashroomReport} ? 'report-available' : 'report-unavailable'" th:text="${review.accessibleWashroomReport} ? 'Washroom: available' : 'Washroom: unavailable'"></span>
+                        <span class="tag" th:if="${review.tactilePavingReport != null}" th:classappend="${review.tactilePavingReport} ? 'report-available' : 'report-unavailable'" th:text="${review.tactilePavingReport} ? 'Tactile paving: available' : 'Tactile paving: unavailable'"></span>
+                        <span class="tag" th:if="${review.wideDoorwaysReport != null}" th:classappend="${review.wideDoorwaysReport} ? 'report-available' : 'report-unavailable'" th:text="${review.wideDoorwaysReport} ? 'Wide doorways: available' : 'Wide doorways: unavailable'"></span>
+                    </div>
+                    <img class="review-photo" th:if="${review.photoUrl != null}" th:src="${review.photoUrl}" alt="Photo shared by a community member">
+                    <time th:text="${#temporals.format(review.createdAt, 'd MMM yyyy')}">Date</time>
+                </article>
+                <p class="quiet-note" th:if="${#lists.isEmpty(reviews)}">No facility check-ins yet. Be the first to share what you found.</p>
+            </section>
+        </section>
+        <aside class="review-form-card">
+            <span class="eyebrow"><span class="eyebrow-dot"></span> HELP THE NEXT VISITOR</span>
+            <h2>Been here?</h2>
+            <p>Your first-hand experience helps someone else plan with confidence. Update each facility you checked today.</p>
+            <form th:action="@{/places/{id}/reviews(id=${place.id})}" method="post" enctype="multipart/form-data">
+                <label class="sr-only" for="rating">How was your visit?</label>
+                <select id="rating" name="rating" required>
+                    <option value="">Choose a rating</option><option value="5">★★★★★ — Great experience</option><option value="4">★★★★ — Good experience</option><option value="3">★★★ — It was okay</option><option value="2">★★ — Some things to know</option><option value="1">★ — Difficult visit</option>
+                </select>
+                <label class="field-label">Check any facilities you visited <span class="optional">(optional)</span></label>
+                <p class="detail-intro">Only update facilities you personally checked. Unchanged facilities keep their last reported status.</p>
+                <div class="monitoring-inputs">
+                    <label for="ramp-report">Step-free entrance</label>
+                    <select id="ramp-report" name="wheelchairRampReport"><option value="">Not checked today</option><option value="available">Available</option><option value="unavailable">Unavailable / needs attention</option></select>
+                    <label for="elevator-report">Working elevator</label>
+                    <select id="elevator-report" name="workingElevatorReport"><option value="">Not checked today</option><option value="available">Working</option><option value="unavailable">Not working / needs attention</option></select>
+                    <label for="washroom-report">Accessible washroom</label>
+                    <select id="washroom-report" name="accessibleWashroomReport"><option value="">Not checked today</option><option value="available">Available</option><option value="unavailable">Unavailable / needs attention</option></select>
+                    <label for="tactile-report">Tactile paving</label>
+                    <select id="tactile-report" name="tactilePavingReport"><option value="">Not checked today</option><option value="available">Available</option><option value="unavailable">Unavailable / needs attention</option></select>
+                    <label for="doorway-report">Wide doorways</label>
+                    <select id="doorway-report" name="wideDoorwaysReport"><option value="">Not checked today</option><option value="available">Clear / wide enough</option><option value="unavailable">Blocked / too narrow</option></select>
+                </div>
+                <label for="comments">Visit notes</label>
+                <textarea id="comments" name="comments" rows="5" maxlength="2000" required placeholder="Share practical details: the entrance, lift, washroom, or anything you wish you’d known."></textarea>
+                <label for="review-photo">Add a photo <span class="optional">(optional)</span></label>
+                <input id="review-photo" type="file" name="photo" accept="image/jpeg,image/png,image/webp" data-photo-input>
+                <div class="photo-preview is-hidden" data-photo-preview></div>
+                <button class="button button-dark button-full" type="submit">Share visit note <span>→</span></button>
+                <small class="form-footnote">Facility checks and visit notes are reviewed by the Bangalore community team before they update the map.</small>
+            </form>
+        </aside>
+    </div>
+</main>
+<div th:replace="~{fragments :: footer}"></div>
+<script th:src="@{/js/site.js}"></script>
+</body>
+</html>

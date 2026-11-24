@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<header class="site-header" th:fragment="header">
+    <div class="header-inner">
+        <a class="brand" th:href="@{/}" aria-label="Access Atlas home">
+            <span class="brand-mark" aria-hidden="true">a<span>.</span></span>
+            <span class="brand-name">access<span>atlas</span></span>
+        </a>
+        <nav class="main-nav" aria-label="Main navigation">
+            <a th:href="@{/#discover}">Explore places</a>
+            <a th:href="@{/contribute}">Add a place</a>
+        </nav>
+        <div class="header-actions">
+            <a class="admin-link" th:if="${currentAccount != null and currentAccount.role == 'ADMIN'}" th:href="@{/admin}">Review queue</a>
+            <a class="sign-in" th:if="${currentAccount == null}" th:href="@{/login}">Log in</a>
+            <a class="avatar" th:if="${currentAccount != null}" th:text="${#strings.substring(currentAccount.name, 0, 1)}" th:href="@{/}" aria-label="Your account"></a>
+            <form class="logout-form" th:if="${currentAccount != null}" th:action="@{/logout}" method="post"><button type="submit">Log out</button></form>
+        </div>
+    </div>
+</header>
+<footer class="site-footer" th:fragment="footer">
+    <div class="footer-inner">
+        <a class="brand footer-brand" th:href="@{/}">
+            <span class="brand-mark" aria-hidden="true">a<span>.</span></span>
+            <span class="brand-name">access<span>atlas</span></span>
+        </a>
+        <p>Better journeys start with better information.</p>
+        <span class="footer-note">Made for every way of moving.</span>
+    </div>
+</footer>
+</body>
+</html>
